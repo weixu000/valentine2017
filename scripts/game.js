@@ -1,11 +1,11 @@
 // import THREE from 'three';
-window.onload = function () {
+(function () {
     // Creating scene
     var scene = new THREE.Scene();
 
     // Ground
     var ground = new THREE.Mesh(
-        new THREE.CubeGeometry(2000, 1, 2000),
+        new THREE.CubeGeometry(300, 1, 300),
         new THREE.MeshBasicMaterial({
             color: 0x656567
         })
@@ -14,12 +14,13 @@ window.onload = function () {
     scene.add(ground);
 
     // Polyhedron
+    var polyhedrons = new THREE.Group();
     var polyhedronMaterial = [0xbd0045, 0xe84f77, 0xffc30c, 0xffd762].map(
         (x) => new THREE.MeshBasicMaterial({
             color: x
         })
     );
-    var polyhedronData = [
+    [
         [
             [22.907, 15.8383, 47.0232],
             [21.7635, 12.9775, 44.6759],
@@ -458,8 +459,7 @@ window.onload = function () {
             [-27.2396, 17.8307, 62.9596],
             [-29.792, 16.0215, 65.1126]
         ]
-    ];
-    polyhedronData.forEach((vlist) => {
+    ].forEach((vlist) => {
         let geometry = new THREE.Geometry();
         geometry.vertices.push(new THREE.Vector3(vlist[0][0], vlist[0][1], vlist[0][2]));
         geometry.vertices.push(new THREE.Vector3(vlist[1][0], vlist[1][1], vlist[1][2]));
@@ -488,23 +488,25 @@ window.onload = function () {
             geometry,
             polyhedronMaterial
         );
-        scene.add(polyhedron);
+        polyhedrons.add(polyhedron);
     })
+    scene.add(polyhedrons);
 
     // Camera
     var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
     camera.position.set(-5, 2, 200);
 
     // Render
+    var canvas = document.querySelector('canvas');
     var renderer = new THREE.WebGLRenderer({
-        canvas: document.querySelector('canvas')
+        canvas: canvas
     });
-    renderer.setSize(window.innerWidth, window.innerHeight);
     window.onresize = () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.aspect = window.innerWidth/ window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     }
+    window.onresize();
 
     // Control
     var moveForward = false,
@@ -613,4 +615,4 @@ window.onload = function () {
         requestAnimationFrame(update);
     }
     update();
-};
+})();
