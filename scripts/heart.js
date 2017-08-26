@@ -1,19 +1,18 @@
-(function () {
-    var canvas = document.querySelector('canvas');
+function heart() {
+    var canvas = document.querySelector('#time canvas');
     var ctx = canvas.getContext('2d');
     var trails = [],
         heartPath = [];
-    var width, height;
+    var width, height, size;
 
-    var v = 32; // num trails, num particles per trail & num nodes in heart path
-    var Y = 6.3; // close to 44/7 or Math.PI * 2 - 6.3 seems is close enough. 
+    var v = 48; // num trails, num particles per trail & num nodes in heart path
 
     window.onresize = () => {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
-        var size = Math.min(width, height);
+        size = Math.min(width, height);
         heartPath = [];
-        for (var i = 0; i < Y; i += .2) { // calculate heart nodes, from http://mathworld.wolfram.com/HeartCurve.html
+        for (var i = 0; i < 2 * Math.PI; i += 2 * Math.PI / (v + 1)) { // calculate heart nodes, from http://mathworld.wolfram.com/HeartCurve.html
             heartPath.push([
                 width / 2 + 180 * size / 500 * Math.pow(Math.sin(i), 3),
                 height / 2 + 10 * size / 500 * (-(15 * Math.cos(i) - 5 * Math.cos(2 * i) - 2 * Math.cos(3 * i) - Math.cos(4 * i)))
@@ -50,15 +49,12 @@
     function render(particle) { // draw particle
         ctx.fillStyle = particle.color;
         ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.rad, 0, Y, 1);
+        ctx.arc(particle.x, particle.y, 0.002 * size * particle.rad, 0, 2 * Math.PI, true);
         ctx.closePath();
         ctx.fill();
     }
 
     setInterval(() => {
-        ctx.fillStyle = "rgba(0,0,0,.2)"; // clear screen
-        ctx.fillRect(0, 0, width, height);
-
         for (var i = v - 1; i >= 0; i--) {
             var trail = trails[i]; // get worm
             var fst = trail[0]; // get 1st particle of worm
@@ -83,8 +79,6 @@
             fst.x += fst.velX; // apply velocity
             fst.y += fst.velY;
 
-            render(fst); // draw the first particle
-
             fst.velX *= fst.fric; // apply friction
             fst.velY *= fst.fric;
 
@@ -94,9 +88,19 @@
 
                 n.x -= (n.x - t.x) * .7; // use zenos paradox to create trail
                 n.y -= (n.y - t.y) * .7;
-
-                render(n);
             }
         }
     }, 25);
-})();
+
+    function animate() {
+        ctx.fillStyle = 'black'; // clear screen
+        ctx.fillRect(0, 0, width, height);
+        trails.forEach(function (trail) {
+            trail.forEach(function (particle) {
+                render(particle);
+            }, this);
+        }, this);
+        requestAnimationFrame(animate);
+    }
+    animate();
+}

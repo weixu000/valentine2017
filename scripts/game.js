@@ -497,12 +497,12 @@
     camera.position.set(-5, 2, 200);
 
     // Render
-    var canvas = document.querySelector('canvas');
+    var canvas = document.querySelector('#game');
     var renderer = new THREE.WebGLRenderer({
         canvas: canvas
     });
     window.onresize = () => {
-        camera.aspect = window.innerWidth/ window.innerHeight;
+        camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     }
@@ -578,41 +578,53 @@
     var finished = false;
 
     function update() {
-        if (!finished) {
-            var delta = clock.getDelta();
-            var moveSpeed = delta * 15,
-                turnSpeed = delta * 1;
+        var delta = clock.getDelta();
+        var moveSpeed = delta * 15,
+            turnSpeed = delta * 1;
 
-            if (moveForward) camera.translateZ(-moveSpeed);
-            if (moveBackward) camera.translateZ(moveSpeed);
+        if (moveForward) camera.translateZ(-moveSpeed);
+        if (moveBackward) camera.translateZ(moveSpeed);
 
-            if (moveLeft) camera.translateX(-moveSpeed);
-            if (moveRight) camera.translateX(moveSpeed);
+        if (moveLeft) camera.translateX(-moveSpeed);
+        if (moveRight) camera.translateX(moveSpeed);
 
-            if (turnLeft) camera.rotateY(turnSpeed);
-            if (turnRight) camera.rotateY(-turnSpeed);
+        if (turnLeft) camera.rotateY(turnSpeed);
+        if (turnRight) camera.rotateY(-turnSpeed);
 
-            var angle = camera.localToWorld(new THREE.Vector3(0, 0, -1)).angleTo(winDirection);
-            if (camera.position.distanceTo(winPosition) < 2 && (angle < THREE.Math.degToRad(10) || angle > THREE.Math.degToRad(170))) {
-                finished = true;
-                var cameraPositionMoveStepX = camera.position.x / 20,
-                    cameraPositionMoveStepZ = camera.position.z / 20,
-                    cameraQuaternion = camera.quaternion,
-                    cameraQuaternionTarget = new THREE.Quaternion();
-                cameraQuaternionTarget.setFromEuler(new THREE.Euler(0, Math.PI, 0));
-                for (var i = 1; i <= 20; i++) {
-                    setTimeout(function () {
-                        camera.translateX(cameraPositionMoveStepX);
-                        camera.translateZ(cameraPositionMoveStepZ);
-                        THREE.Quaternion.slerp(cameraQuaternion, cameraQuaternionTarget, camera.quaternion, i / 20);
-                        renderer.render(scene, camera);
-                    }, 50 * i);
-                };
-            }
+        var angle = camera.localToWorld(new THREE.Vector3(0, 0, -1)).angleTo(winDirection);
+        if (camera.position.distanceTo(winPosition) < 2 && (angle < THREE.Math.degToRad(10) || angle > THREE.Math.degToRad(170))) {
+            finished = true;
         }
-
-        renderer.render(scene, camera);
-        requestAnimationFrame(update);
     }
-    update();
+
+    function animate() {
+        if (!finished) {
+            update();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        } else {
+            var cameraPositionMoveStepX = camera.position.x / 20,
+                cameraPositionMoveStepZ = camera.position.z / 20,
+                cameraQuaternion = camera.quaternion,
+                cameraQuaternionTarget = new THREE.Quaternion();
+            cameraQuaternionTarget.setFromEuler(new THREE.Euler(0, Math.PI, 0));
+            for (var i = 1; i <= 20; i++) {
+                setTimeout(() => {
+                    camera.translateX(cameraPositionMoveStepX);
+                    camera.translateZ(cameraPositionMoveStepZ);
+                    THREE.Quaternion.slerp(cameraQuaternion, cameraQuaternionTarget, camera.quaternion, i / 20);
+                    renderer.render(scene, camera);
+                }, 50 * i);
+            }
+            setTimeout(() => {
+                canvas.style.animation = '2s appear reverse';
+                setTimeout(() => {
+                    document.querySelector('#time').style.animation = '2s appear';
+                    canvas.parentElement.removeChild(canvas);
+                    heart();
+                }, 2000);
+            }, 1000);
+        }
+    }
+    animate();
 })();
